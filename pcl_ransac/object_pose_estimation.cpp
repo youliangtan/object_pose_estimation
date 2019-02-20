@@ -5,61 +5,16 @@
  *  - Created for Testing
 */
 
-
-// TOBEREMOVE means for line endpoints visualization
-
-#include <iostream>
-#include <string>
-#include <math.h>    
-
-
-#include <pcl/console/parse.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/sample_consensus/sac_model_line.h>
-
-#include <pcl/visualization/pcl_visualizer.h>
-
-#include <pcl/ModelCoefficients.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
-
-
-// clustering and filtering
-#include <pcl/segmentation/extract_clusters.h>
-#include <pcl/kdtree/kdtree.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/filters/radius_outlier_removal.h>
-#include <pcl/filters/statistical_outlier_removal.h>
-
-
-#include <boost/thread/thread.hpp>
-#include <Eigen/Dense>
-
-
-#define PI 3.14159265
-
-
-// TODO: addd param file
-
-// TO BE REMOVED!!
-pcl::PointCloud<pcl::PointXYZ>::Ptr line_points(new pcl::PointCloud<pcl::PointXYZ>);
-std::vector<pcl::PointXYZ> *line_centers (new std::vector<pcl::PointXYZ>);
-std::vector<float> *lines_length (new std::vector<float>);
-int temp_line_idx = 0;
+#include "object_pose_estimation.h"
 
 
 
 
-pcl::visualization::PCLVisualizer::Ptr simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, 
-                                                  std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > *lines,
-                                                  std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > *clusters
-                                                  ){
+// PCL Visualizer
+pcl::visualization::PCLVisualizer::Ptr ObjectPoseEstimate2D::simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, 
+                                                                        std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > *lines,
+                                                                        std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > *clusters
+                                                                        ){
 
 
   pcl::visualization::PCLVisualizer::Ptr viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
@@ -83,7 +38,8 @@ pcl::visualization::PCLVisualizer::Ptr simpleVis (pcl::PointCloud<pcl::PointXYZ>
     cluster_idx++;
   }
   
-  // visualizting lines
+
+  // visualizting all lines points
   int line_idx=0;
   for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator points = lines->begin(); points != lines->end(); ++points) {
     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> source_cloud_color_handler3 (*points, 255, 0, 0);
@@ -93,18 +49,40 @@ pcl::visualization::PCLVisualizer::Ptr simpleVis (pcl::PointCloud<pcl::PointXYZ>
     line_idx++;
   }
 
-  // TODO: visualize texts
-  for (int idx = 0; idx < lines_length->size (); ++idx){
-    viewer->addText3D( "line" + std::to_string(idx) + " length m: " + std::to_string(lines_length->at(idx)), line_centers->at(idx), 0.08, 0.0, 1.0, 0.0, "line"+ std::to_string(idx));
-    viewer->initCameraParameters ();
-    viewer->setCameraPosition(0,0,6,0,0,0);
+
+  // Visualize line descriptors
+  for (int idx = 0; idx < lines_descriptors->size(); ++idx){
+    // text
+    pcl::PointXYZ line_center;
+    line_center.x = lines_descriptors->at(idx).mid_x;
+    line_center.y = lines_descriptors->at(idx).mid_y;
+    line_center.z = 0;
+    viewer->addText3D(  " line" + std::to_string(idx) + "\n length : " + 
+                        std::to_string( lines_descriptors->at(idx).length ) + "\n theta: " +
+                        std::to_string( lines_descriptors->at(idx).theta ), 
+                        line_center, 0.04, 0.0, 1.0, 0.0, 
+                        "line"+ std::to_string(idx));
+
+    // 1 line 2 endpoints
+    pcl::PointCloud<pcl::PointXYZ>::Ptr line_points (new pcl::PointCloud<pcl::PointXYZ>);
+    line_points->width  = 2;
+    line_points->height = 1;
+    line_points->points.resize (line_points->width * line_points->height);
+    line_points->points[0].x = lines_descriptors->at(idx).x_min;
+    line_points->points[0].y = lines_descriptors->at(idx).y_min;
+    line_points->points[0].z = 0;
+    line_points->points[1].x = lines_descriptors->at(idx).x_max;
+    line_points->points[1].y = lines_descriptors->at(idx).y_max;
+    line_points->points[1].z = 0;
+    
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> source_cloud_color_handler4 (line_points, 255, 0, 255);
+    viewer->addPointCloud<pcl::PointXYZ> (line_points, source_cloud_color_handler4, "endpoints" + std::to_string(idx));
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 15, "endpoints" + std::to_string(idx));
   }
 
-  // visualize line endpoints
-  pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> source_cloud_color_handler4 (line_points, 255, 0, 255);
-  viewer->addPointCloud<pcl::PointXYZ> (line_points, source_cloud_color_handler4, "endpoints");
-  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 15, "endpoints");
 
+  viewer->initCameraParameters ();
+  viewer->setCameraPosition(0,0,6,0,0,0);
 
   return (viewer);
 }
@@ -113,8 +91,11 @@ pcl::visualization::PCLVisualizer::Ptr simpleVis (pcl::PointCloud<pcl::PointXYZ>
 
 // identify all line's endpoints
 // 2D plane only
-void get_line_endpoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Eigen::VectorXf coeff){
+// return pose
+void ObjectPoseEstimate2D::getLinesDescriptors(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Eigen::VectorXf coeff){
   
+  //  ===================== get_line_endpoints ======================
+  // TODO:: for loop of all lines
   // init
   float score, score_max, score_min;
   score = cloud->points[0].x * coeff[3]  + cloud->points[0].y * coeff[4];
@@ -152,49 +133,32 @@ void get_line_endpoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Eigen::Vector
   length = sqrt( (x_max - x_min)*(x_max - x_min) + (y_max - y_min)*(y_max - y_min) );
   std::cout << " - length: " <<  length <<std::endl;
 
-  // TOBEREMOVED
-  // insert 2 endpoints for visualization
-  line_points->points[temp_line_idx].x = x_min;
-  line_points->points[temp_line_idx].y = y_min;
-  line_points->points[temp_line_idx].z = 0;
-  temp_line_idx++;
-  line_points->points[temp_line_idx].x = x_max;
-  line_points->points[temp_line_idx].y = y_max;
-  line_points->points[temp_line_idx].z = 0;
-  temp_line_idx++;
 
+  // ========================= cont' with line profiling ==============================
 
-  pcl::PointXYZ line_center;
-  line_center.x = (x_max + x_min )/2;
-  line_center.y = (y_max + y_min )/2;
-  line_center.z = 0;
-  line_centers->push_back ( line_center );  
-  lines_length->push_back ( length );
+  struct LineDescriptor line_desc;
+  line_desc.index = lines_descriptors->size();
+  line_desc.num_points = cloud->points.size ();
+  line_desc.x_max = x_max;
+  line_desc.y_max = y_max;
+  line_desc.x_min = x_min;
+  line_desc.y_min = y_min;
+  line_desc.mid_x = (x_max + x_min )/2;
+  line_desc.mid_y = (y_max + y_min )/2;
+  line_desc.length = sqrt( (x_max - x_min)*(x_max - x_min) + (y_max - y_min)*(y_max - y_min) );
+  line_desc.distance = sqrt( (line_desc.mid_x)*(line_desc.mid_x) + (line_desc.mid_y)*(line_desc.mid_y) );
+  line_desc.theta = atan (coeff[4]/coeff[3]) * 180 / PI;    // degrees
+
+  // update line description list datas
+  lines_descriptors->push_back ( line_desc );
   
-  // get value of theta 
-  float theta;
-  // TODOL take  care of coeff[3] when = 0
-  theta = atan (coeff[4]/coeff[3]) * 180 / PI;
-  printf (" - line theta is %f degrees\n", theta );
-
 }
 
-
-// TOBEREMOVED
-// for visualization purpose
-void init_get_line_endpoints(int size){
-
-  // Fill in the cloud data
-  line_points->width  = size;
-  line_points->height = 1;
-  line_points->points.resize (line_points->width * line_points->height);
-
-}
 
 
 
 // clustering and filtering
-std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> object_clustering(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud){
+std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> ObjectPoseEstimate2D::objectClustering(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud){
   
   // // outliner filtering
   // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
@@ -205,12 +169,8 @@ std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> object_clustering(pcl::PointCl
   // sor.filter (*cloud_filtered);
   // std::cout << " Filtered cloud from " << input_cloud->size() << " to " << cloud_filtered->size() << std::endl;
 
-  // // Create Cluster init
+  // pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
   // Creating the KdTree object for the search method of the extraction
-  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.04); // 10cm
-  ec.setMinClusterSize (20);
-  ec.setMaxClusterSize (25000);
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
 
   // clusterize each plane
@@ -221,8 +181,6 @@ std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> object_clustering(pcl::PointCl
   ec.extract (cluster_indices);
 
   std::cout << "Num of Clusters: " << cluster_indices.size () << std::endl;
-  // TOBEREMOVED
-  init_get_line_endpoints( cluster_indices.size()*2 );
 
   // extract and visualize cluster segmentation for each plane
   int clusterNum = 0;
@@ -249,19 +207,19 @@ std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> object_clustering(pcl::PointCl
 
 
 
-// Line Fitting
-std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> line_fitting(std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > *clusters){
+// Ransac Line Fitting
+std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> ObjectPoseEstimate2D::lineFitting(std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > *clusters){
   
   std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> lines;
 
   for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator cloud = clusters->begin(); cloud != clusters->end(); ++cloud) {
-    pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_l (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (*cloud));
+
     pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>);
     std::vector<int> inliers;
-    Eigen::VectorXf coeff;  // [point_on_line.x point_on_line.y point_on_line.z line_direction.x line_direction.y line_direction.z] (unit vector)
-
+    Eigen::VectorXf coeff;  //  * [point_on_line.x point_on_line.y point_on_line.z line_direction.x line_direction.y line_direction.z] (unit vector)
 
     //ransac
+    pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_l (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (*cloud));
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_l);
     ransac.setDistanceThreshold (.04); // so call error allowance for laser scan
     ransac.computeModel();
@@ -283,9 +241,9 @@ std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> line_fitting(std::vector< pcl:
     sor.setStddevMulThresh (1.6*dist_coeff);
     sor.filter (*target);
 
-    get_line_endpoints(target, coeff);
-
-    lines.push_back ( target );  
+    
+    getLinesDescriptors(target, coeff);
+    lines.push_back ( target );   // pointcloud
     
   }
   return lines;
@@ -293,14 +251,84 @@ std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr> line_fitting(std::vector< pcl:
   
 
 
+//get pose estimation
+// param input: roi_range[4], target_length, length_tolerance, min_num_points
+Eigen::Vector3f ObjectPoseEstimate2D::getTargetPose(){
 
-// //get pose estimation
-// void get_pose_estimation(){
+  float mid_x, mid_y, x_coor, y_coor, theta, length;
+    
+  x_coor = 0;
+  y_coor = 0;
+  theta = 0;
 
-// }
+  for (int idx = 0; idx < lines_descriptors->size(); ++idx){
+    
+    // check x_y range 
+    mid_x = lines_descriptors->at(idx).mid_x;
+    mid_y = lines_descriptors->at(idx).mid_y;
+
+    if (mid_x < roi_range[0] || mid_x > roi_range[1]) continue;
+    if (mid_y < roi_range[2] || mid_y > roi_range[3]) continue;
+
+    // length with tolerance
+    length = lines_descriptors->at(idx).length;
+    if ( length > (target_length + length_tolerance) || length < (target_length - length_tolerance) ) continue;
+
+    // check num of points
+    if ( lines_descriptors->at(idx).num_points > min_num_points) continue;
+
+    // comfirm that pass
+    x_coor = mid_x;
+    y_coor = mid_y;
+    theta = lines_descriptors->at(idx).theta;
+
+    break;
+  }
+
+  std::cout << "Get Target Pose!" << std::endl;
+  Eigen::Vector3f TargetPose;
+  TargetPose[0] = x_coor;
+  TargetPose[1] = y_coor;
+  TargetPose[2] = theta;
+  
+  return TargetPose;
+}
 
 
-// ------------------ Main Function -------------------
+
+  
+// Init
+ObjectPoseEstimate2D::ObjectPoseEstimate2D(){
+  std::cout << "Starting PCL Object Pose Estimation" << std::endl;
+  //line_points = boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > (new pcl::PointCloud<pcl::PointXYZ>);
+  lines_descriptors = new std::vector<LineDescriptor>;
+
+  // TODO: load param
+
+  YAML::Node config = YAML::LoadFile("../config.yaml");
+  
+  roi_range[0] = 0; // [x.min, x.max, y.min, y.max]
+  roi_range[1] = 1;
+  roi_range[2] = 2;
+  roi_range[3] = 3;
+  target_length = 0;
+  length_tolerance = 0; 
+  min_num_points = 0;
+
+  // // Create PCL Clustering init
+  ec.setClusterTolerance ( config["cluster_tolerance"].as<float>() );
+  ec.setMinClusterSize ( config["min_cluster_size"].as<float>() );
+  ec.setMaxClusterSize ( config["max_cluster_size"].as<float>() );
+
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////// ------------------ Main Function ------------------- //////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 int main(int argc, char** argv)
 {
   // initialize PointClouds
@@ -308,6 +336,7 @@ int main(int argc, char** argv)
   pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>);
   std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_clusters;
   std::vector< pcl::PointCloud<pcl::PointXYZ>::Ptr > cloud_lines;
+  Eigen::Vector3f target_pose;
 
 
   if (argc < 3 || pcl::console::find_switch (argc, argv, "-h") )
@@ -330,13 +359,18 @@ int main(int argc, char** argv)
     exit(0);
   }
 
-  cloud_clusters = object_clustering(cloud);
-  cloud_lines = line_fitting(&cloud_clusters);
+
+  // TODO: Place class here
+  ObjectPoseEstimate2D agv_laser_scan;
+  cloud_clusters = agv_laser_scan.objectClustering(cloud);
+  cloud_lines = agv_laser_scan.lineFitting(&cloud_clusters);
+  // agv_laser_scan.get_line_endpoints();
+  // target_pose = agv_laser_scan.getTargetPose();
   std::cout << "Clusters vector size: " << cloud_clusters.size () << std::endl;
 
   // visualizer
   pcl::visualization::PCLVisualizer::Ptr viewer;
-  viewer = simpleVis(cloud, &cloud_lines, &cloud_clusters);
+  viewer = agv_laser_scan.simpleVis(cloud, &cloud_lines, &cloud_clusters);
 
   while (!viewer->wasStopped ())
   {
