@@ -6,14 +6,21 @@ Simple 2D pointcloud target object pose estimator
 
 ## Getting Started
 
+```
+cd catkin_ws
+catkin_make --pkg object_pose_estimation
+source devel/setup.bash
+```
+
+
 Use ROS Hokoyu Driver Package [here](https://github.com/ros-drivers/urg_node).
 `roslaunch urg_node urg_lidar.launch ip_address:=XXXXXXX`
 
 Conversion from laserscan to pointcloud
 ` rosrun object_pose_estimation scan2pcd.cpp `
 
-Main Pose Estimation Bin
-` rosrun object_pose_estimation obj_pose_estimation.cpp `
+Main Pose Estimation ROS2 Node
+` rosrun object_pose_estimation object_pose_estimation_ross `
 
 
 ## What's Going on
