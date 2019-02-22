@@ -334,8 +334,11 @@ void ObjectPoseEstimate2D::getTargetPose( Eigen::Vector3f *target_pose ){
     target_line_idx = idx;
     x_coor = mid_x;
     y_coor = mid_y;
-    theta = lines_descriptors->at(idx).theta;
-
+    theta = lines_descriptors->at(idx).theta + 90;
+    // manage -ve senario
+    if (theta < 90) theta = 180+theta;
+    // theta = 180+theta
+    std::cout<< " - Target Pose: " << x_coor << " " << y_coor << " " << theta << std::endl;
     break;
   }
 
@@ -350,7 +353,13 @@ void ObjectPoseEstimate2D::getTargetPose( Eigen::Vector3f *target_pose ){
 
 
 void ObjectPoseEstimate2D::getTargetPointCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
-  if (target_line_idx != -1) *cloud = *(lines_cloud->at(target_line_idx));
+  if (target_line_idx != -1){
+    *cloud = *(lines_cloud->at(target_line_idx));
+  }
+  else{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr empty (new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud = *empty;
+  } 
 }
 
 

@@ -13,17 +13,17 @@ max_cluster_size: 25000
 
 # Line Fitting
 ransac_dist_thresh: 0.04
-enable_outliner_filtering: False
-outliner_mean_k: 20
+enable_outliner_filtering: True
+outliner_mean_k: 10
 dist_coeff_factor: 3.7  # dist determine ransac tol
-outliner_std_dev_factor: 150
+outliner_std_dev_factor: 200
 
 # Target Line Pose Estimation
 region_of_interest:
-  x_min: 0.1
+  x_min: 0.3
   x_max: 1.3
-  y_min: -0.7
-  y_max: 0.7
-target_length: 0.50
-length_tolerance: 0.15
+  y_min: -0.5
+  y_max: 0.5
+target_length: 0.40
+length_tolerance: 0.1
 min_num_points: 20

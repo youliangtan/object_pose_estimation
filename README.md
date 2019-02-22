@@ -1,6 +1,7 @@
 # object_pose_estimation
-Simple 2D pointcloud target object pose estimator
-(Testing code!)
+Simple ROS 2D pointcloud target object pose estimator. Line-based target identifier with user input parameters.
+
+![alt text](/resources/rviz_example.png?)
 
 *Developing!!!!!!!!!!!!!*
 
@@ -13,14 +14,26 @@ source devel/setup.bash
 ```
 
 
-Use ROS Hokoyu Driver Package [here](https://github.com/ros-drivers/urg_node).
-`roslaunch urg_node urg_lidar.launch ip_address:=XXXXXXX`
+**Use ROS Hokoyu Driver Package [here](https://github.com/ros-drivers/urg_node).**
+```
+roslaunch urg_node urg_lidar.launch ip_address:=XXXXXXX
+```
 
-Conversion from laserscan to pointcloud
-` rosrun object_pose_estimation scan2pcd.cpp `
+**Conversion from laserscan to pointcloud**
+``` 
+rosrun object_pose_estimation scan2pcd.cpp 
+```
 
-Main Pose Estimation ROS2 Node
-` rosrun object_pose_estimation object_pose_estimation_ross `
+**Main Pose Estimation ROS2 Node**
+``` 
+rosrun object_pose_estimation object_pose_estimation_ros
+```
+
+**Visualize on Rviz**
+visualize topic on `/scan`, `/target_pose`, `/target_cloud`.
+```
+rviz -f laser
+```
 
 
 ## What's Going on
