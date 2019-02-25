@@ -1,8 +1,10 @@
 
 /* 
+ *  CPP Header file for 'ObjectPoseEstimate2D' class
+ * 
  *  Created By: Tan You Liang, Feb 2019
- *  - for testing on ransac interested object identification and pose estimation
- *  - Created for Testing
+ *  - for testing on 2D pose estimation of targeted object (line)
+ * 
 */
 
 #include <iostream>
@@ -38,10 +40,7 @@
 #include <boost/thread/thread.hpp>
 #include <Eigen/Dense>
 
-
 #define PI 3.14159265
-#define TARGET_LENGTH 0.55
-#define LENGTH_TOLERANCE 0.08
 
 
 // TODO: struct line(length, pose, numPoints, distance)
@@ -69,16 +68,20 @@ class ObjectPoseEstimate2D {
     std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> *clusters_cloud;
     std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> *lines_cloud;
     std::vector<LineDescriptor> *lines_descriptors;
-    Eigen::Vector3f TargetPose;
-    int target_line_idx;
+    std::vector<Eigen::Vector3f> *targetPoseArray;
 
+    Eigen::Vector3f TargetPose;
+    int target_line_idx;  // final identified targeted line's idx
+    int jump_count; // for jump filtering
     
     // Param stuffs
     YAML::Node config;
     Eigen::Vector4f roi_range; // Region of interest [x.min, x.max, y.min, y.max]
-    float target_length, length_tolerance, min_num_points;
+    float target_length, length_tolerance;
     bool enable_outliner_filtering;
     float outliner_mean_k, dist_coeff_factor, ransac_dist_thresh, outliner_std_dev_factor; //line_fitting
+    int min_num_points, averaging_span,jump_count_allowance;
+    float jump_score_thresh;
 
 
   protected:    
@@ -90,6 +93,8 @@ class ObjectPoseEstimate2D {
     // called by line fitting    
     void getLinesDescriptors(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Eigen::VectorXf coeff);
 
+    void findTargetPose();
+
 
   public:
 
@@ -97,13 +102,17 @@ class ObjectPoseEstimate2D {
     
     void setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
-    // Eigen[x, y, theta]
+    // use when would like to avg the result, smoothern the curve 
+    // @param: tune with 'averaging_span, jump val' in config
+    void applyMovingAvgFiltering();
+
+    // get Eigen[x, y, theta(rad)] of targeted obj pose
     void getTargetPose( Eigen::Vector3f *target_pose);
 
-    // get target point cloud line
+    // get target object point cloud line
     void getTargetPointCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
-    // for visualization
+    // only for pcl visualization
     pcl::visualization::PCLVisualizer::Ptr simpleVis ();
 
     // re initiate same class

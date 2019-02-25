@@ -4,7 +4,7 @@
   <version>0.0.0</version>
 
   <description>
-  Testing code for pose estimation of Target Object's laser point cloud.
+  Testing code for 2D pose estimation of Target Object's via laser point cloud.
   </description>
 
   <maintainer email="tan_you_liang@hotmail.com">You Liang</maintainer>

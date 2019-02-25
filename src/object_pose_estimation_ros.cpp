@@ -1,7 +1,8 @@
 
-/* 
+/*  CPP code on ROS Node execution of 'ObjectPoseEstimate2D' class
+ *  
  *  Created By: Tan You Liang, Feb 2019
- *  - for testing on ransac interested object identification and pose estimation
+ *  - For testing on 2D pose estimation of targeted object (line)
  *  - Created for Testing
 */
 
@@ -29,7 +30,6 @@
 
 
 #include <object_pose_estimation.h>
-
 
 
 
@@ -71,8 +71,8 @@ PoseEstimationNode::PoseEstimationNode(): agv_laser_scan("src/object_pose_estima
 
 // laserscan callback
 void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan){
-    std::cout<< "[Scan Callback]" << std::endl;
 
+    std::cout<< "\n[ ---------------------------- Scan Callback --------------------------]" << std::endl;
     sensor_msgs::PointCloud2 raw_cloud;
 
     // convert '/scan' to '/cloud'
@@ -81,9 +81,10 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     
     agv_laser_scan.reInit();
     agv_laser_scan.setInputCloud(hokoyu_cloud);
+    agv_laser_scan.applyMovingAvgFiltering();
     agv_laser_scan.getTargetPose(&target_pose);
     agv_laser_scan.getTargetPointCloud(target);
-    
+
     // Output PointCloud msg
     sensor_msgs::PointCloud2 pc_msg;
     pcl::toROSMsg(*target, pc_msg);
@@ -98,7 +99,7 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     
     tf::Quaternion quat_tf;
     geometry_msgs::Quaternion quat_msg;
-    quat_tf.setRPY(0, 0, target_pose[2]*PI/180); //rpy to quaternion
+    quat_tf.setRPY(0, 0, target_pose[2]); //rpy to quaternion
     tf::Transform transform;
 
     transform.setOrigin( tf::Vector3(0, 0, 0.0) );
