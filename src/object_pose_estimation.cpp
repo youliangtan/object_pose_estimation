@@ -348,7 +348,7 @@ void ObjectPoseEstimate2D::findTargetPose(){
     // manage -ve senario
     if (theta < PI/2) theta = PI+theta;
     
-    std::cout<< " - Target Pose: " << x_coor << " " << y_coor << " " << theta << std::endl;
+    std::cout<< " - Found Target Pose!! : " << x_coor << " " << y_coor << " " << theta << std::endl;
     break;
   }
 
@@ -404,13 +404,13 @@ void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
   float jump_score = 0;
 
   // **Pose jump filtering*
-  if (array_size > 2){ // make sure there's prev pose to compare with current pose
+  if (array_size >= 2){ // make sure there's prev pose to compare with current pose
     Eigen::Vector3f targetPoseDiff = targetPoseArray->at(array_size-1) - targetPoseArray->at(array_size-2);
     jump_score = targetPoseDiff.transpose()*targetPoseDiff; // sumation of the square of x, y, yaw 
     std::cout << "##jump score: " << jump_score << std::endl;
   }
 
-  // check score, score > thresh means it's jumped
+  // check score, score > thresh means it's a jump
   if (jump_score > jump_score_thresh){  
     // check jump count on how many samples that have jumped
     if (jump_count < jump_count_allowance )  { 
@@ -420,11 +420,11 @@ void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
     }
     else{
       jump_count = 0;
-      targetPoseArray->erase(targetPoseArray->begin(), targetPoseArray->end());
-      std::cout << "##jump reseted, with pose array size: " << targetPoseArray->size() << std::endl;
+      targetPoseArray->erase(targetPoseArray->begin(), targetPoseArray->end()-1);
+      std::cout << "##jump Reseted, with pose array size: " << targetPoseArray->size() << std::endl;
     }
   }
-
+  else jump_count = 0;
 
   // **Moving Averaging Filtering*
   Eigen::Vector3f target_pose_sums(0,0,0);
@@ -434,11 +434,13 @@ void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
     target_pose_sums += targetPoseArray->at(i);
   }
 
-  std::cout << "Applyfiltering with size: " << array_size<< std::endl;
   // update output targetPose
   TargetPose[0] = target_pose_sums[0]/array_size;
   TargetPose[1] = target_pose_sums[1]/array_size;
   TargetPose[2] = target_pose_sums[2]/array_size;
+
+  std::cout << "Applyfiltering with size: " << array_size<< std::endl;
+  std::cout << "- Ouput Pose, x, y, theta: " << TargetPose[0] << " " << TargetPose[1] << " "<< TargetPose[2] << std::endl;
 }
 
 
@@ -475,7 +477,7 @@ int main(int argc, char** argv)
     std::cout<<"No Input PCD File, pls input via '-input' "<<std::endl;
     exit(0);
   }
-
+  
 
   // =============== Place class here =====================
   ObjectPoseEstimate2D agv_laser_scan("src/object_pose_estimation/config/config.yaml");

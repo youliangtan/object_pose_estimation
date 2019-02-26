@@ -18,7 +18,7 @@ ransac_dist_thresh: 0.04
 enable_outliner_filtering: True
 outliner_mean_k: 10
 dist_coeff_factor: 3.7  # dist determine ransac tol
-outliner_std_dev_factor: 200
+outliner_std_dev_factor: 150
 
 # Target Line Pose Estimation
 region_of_interest:  # selected region of interest
@@ -26,11 +26,11 @@ region_of_interest:  # selected region of interest
   x_max: 1.3
   y_min: -0.5
   y_max: 0.5
-target_length: 0.40     # target's length
-length_tolerance: 0.1   # + - target's length as allowance
-min_num_points: 20      # min number of point clouds to be a valid target
+target_length: 0.48     # target's length
+length_tolerance: 0.05   # + - target's length as allowance
+min_num_points: 80      # min number of point clouds to be a valid target
 
 #Dynamic Pose result filtering
 averaging_span: 8   # odd is preferable num, number of samples to avg
 jump_score_thresh: 0.2    # to counter the prob of outliner points
-jump_count_allowance: 8   # allow outliner to replace prev results after certain count
+jump_count_allowance: 4   # allow outliner to replace prev results after certain count
