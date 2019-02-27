@@ -31,6 +31,6 @@ length_tolerance: 0.05   # + - target's length as allowance
 min_num_points: 80      # min number of point clouds to be a valid target
 
 #Dynamic Pose result filtering
-averaging_span: 8   # odd is preferable num, number of samples to avg
+averaging_span: 10   # odd is preferable num, number of samples to avg
 jump_score_thresh: 0.2    # to counter the prob of outliner points
-jump_count_allowance: 4   # allow outliner to replace prev results after certain count
+jump_count_allowance: 6   # allow outliner to replace prev results after certain count
