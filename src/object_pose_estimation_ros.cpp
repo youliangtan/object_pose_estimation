@@ -50,6 +50,7 @@ class PoseEstimationNode {
 
         ros::Publisher pose_publisher_;
         ros::Publisher point_cloud_publisher_;
+        ros::Publisher pose_publisher_2d;
         ros::Subscriber scan_sub_;
         
         ObjectPoseEstimate2D agv_laser_scan;
@@ -63,6 +64,9 @@ PoseEstimationNode::PoseEstimationNode(): agv_laser_scan("src/object_pose_estima
     scan_sub_ = node_.subscribe<sensor_msgs::LaserScan> ("/scan", 100, &PoseEstimationNode::scanCallback, this);
     pose_publisher_ = node_.advertise<geometry_msgs::PoseStamped> ("/target_pose", 100, false);
     point_cloud_publisher_ = node_.advertise<sensor_msgs::PointCloud2> ("/target_cloud", 100, false);
+
+    // for arm manipulator control
+    pose_publisher_2d = node_.advertise<geometry_msgs::Pose2D> ("/ur10/target_pose", 100, false);
 
     tfListener_.setExtrapolationLimit(ros::Duration(0.1));
 
@@ -91,24 +95,28 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     pc_msg.header.frame_id = "laser";
     point_cloud_publisher_.publish(pc_msg);
 
-    // Output Pose Msg
-    geometry_msgs::Pose pose_msg;
-    pose_msg.position.x = target_pose[0];
-    pose_msg.position.y = target_pose[1];
-    pose_msg.position.z = 0;
-    
+    // Output 2D Pose Msg
+    geometry_msgs::Pose2D pose_2d_msg;
+    pose_2d_msg.x = target_pose[0];
+    pose_2d_msg.y = target_pose[1];
+    pose_2d_msg.theta = target_pose[2];
+    pose_publisher_2d.publish(pose_2d_msg);
+
+    // Output Pose Stamped Msg
     tf::Quaternion quat_tf;
     geometry_msgs::Quaternion quat_msg;
     quat_tf.setRPY(0, 0, target_pose[2]); //rpy to quaternion
+    
     tf::Transform transform;
-
     transform.setOrigin( tf::Vector3(0, 0, 0.0) );
     transform.setRotation(quat_tf);
     quaternionTFToMsg(quat_tf , quat_msg);
-    pose_msg.orientation = quat_msg;
     
     geometry_msgs::PoseStamped poseStamp_msg;
-    poseStamp_msg.pose = pose_msg;
+    poseStamp_msg.pose.position.x = target_pose[0];
+    poseStamp_msg.pose.position.y = target_pose[1];
+    poseStamp_msg.pose.position.z = 0;
+    poseStamp_msg.pose.orientation = quat_msg;
     poseStamp_msg.header.frame_id = "laser";
     pose_publisher_.publish(poseStamp_msg);
 }
