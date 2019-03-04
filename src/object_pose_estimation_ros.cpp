@@ -32,17 +32,19 @@
 #include <object_pose_estimation.h>
 
 
-
-// temp global var
-pcl::PointCloud<pcl::PointXYZ>::Ptr hokoyu_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
-pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>); 
-Eigen::Vector3f target_pose;
+#define SKIP_PUB_FRAME 20 // changeable int to reduce pub rate for '/ur10/target_pose' topic
 
 
 class PoseEstimationNode {
     public:
         PoseEstimationNode();
         void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
+    
+    protected:
+        pcl::PointCloud<pcl::PointXYZ>::Ptr hokoyu_cloud;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr target;
+        Eigen::Vector3f target_pose;
+    
     private:
         ros::NodeHandle node_;
         laser_geometry::LaserProjection projector_;
@@ -52,24 +54,28 @@ class PoseEstimationNode {
         ros::Publisher point_cloud_publisher_;
         ros::Publisher pose_publisher_2d;
         ros::Subscriber scan_sub_;
+        int pub_frame_num; // keep track of pub frame num
         
         ObjectPoseEstimate2D agv_laser_scan;
-
 };
 
 
 // init handler
 PoseEstimationNode::PoseEstimationNode(): agv_laser_scan("src/object_pose_estimation/config/config.yaml") {
-    std::cout<< "init class... " << std::endl;
+    std::cout<< "Init ROS Pose Estimation Node" << std::endl;
+
+    hokoyu_cloud = (boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> >) new pcl::PointCloud<pcl::PointXYZ>() ;
+    target = (boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> >) new pcl::PointCloud<pcl::PointXYZ>() ;
+
     scan_sub_ = node_.subscribe<sensor_msgs::LaserScan> ("/scan", 100, &PoseEstimationNode::scanCallback, this);
     pose_publisher_ = node_.advertise<geometry_msgs::PoseStamped> ("/target_pose", 100, false);
     point_cloud_publisher_ = node_.advertise<sensor_msgs::PointCloud2> ("/target_cloud", 100, false);
-
     // for arm manipulator control
     pose_publisher_2d = node_.advertise<geometry_msgs::Pose2D> ("/ur10/target_pose", 100, false);
 
     tfListener_.setExtrapolationLimit(ros::Duration(0.1));
 
+    pub_frame_num = 0;
 }
 
 
@@ -95,13 +101,6 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     pc_msg.header.frame_id = "laser";
     point_cloud_publisher_.publish(pc_msg);
 
-    // Output 2D Pose Msg
-    geometry_msgs::Pose2D pose_2d_msg;
-    pose_2d_msg.x = target_pose[0];
-    pose_2d_msg.y = target_pose[1];
-    pose_2d_msg.theta = target_pose[2];
-    pose_publisher_2d.publish(pose_2d_msg);
-
     // Output Pose Stamped Msg
     tf::Quaternion quat_tf;
     geometry_msgs::Quaternion quat_msg;
@@ -119,6 +118,19 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     poseStamp_msg.pose.orientation = quat_msg;
     poseStamp_msg.header.frame_id = "laser";
     pose_publisher_.publish(poseStamp_msg);
+
+    // Output 2D Pose Msg
+    if (pub_frame_num > SKIP_PUB_FRAME){
+        geometry_msgs::Pose2D pose_2d_msg;
+        pose_2d_msg.x = target_pose[0];
+        pose_2d_msg.y = target_pose[1];
+        pose_2d_msg.theta = target_pose[2];
+        pose_publisher_2d.publish(pose_2d_msg);
+        pub_frame_num = 0;
+    }
+    else{
+        pub_frame_num++;
+    }
 }
 
 
