@@ -98,8 +98,10 @@ class ObjectPoseEstimate2D {
 
   public:
 
+    // @arg: input path for yaml config file
     ObjectPoseEstimate2D(std::string config_path);
     
+    // @arg: input cloud for 2d line detection
     void setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
     // use when would like to avg the result, smoothern the curve 
@@ -118,10 +120,12 @@ class ObjectPoseEstimate2D {
     // re initiate same class
     void reInit();
 
+    // get region of interest
+    void getROI(std::vector<Eigen::Vector3f> *roi_points);
 
     // TODO:
     // getLinesPoints();
     // getROI();
-    // getLinePoints();
+
 
 };

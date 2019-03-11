@@ -26,8 +26,8 @@ region_of_interest:  # selected region of interest
   x_max: 1.3
   y_min: -0.5
   y_max: 0.5
-target_length: 0.75 # 0.51 chair     # target's length
-length_tolerance: 0.05   # + - target's length as allowance
+target_length: 0.78 # 0.51 chair     # target's length
+length_tolerance: 0.10   # + - target's length as allowance
 min_num_points: 80      # min number of point clouds to be a valid target
 
 #Dynamic Pose result filtering

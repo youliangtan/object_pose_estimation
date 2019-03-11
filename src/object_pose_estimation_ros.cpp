@@ -34,6 +34,7 @@
 
 #define SKIP_PUB_FRAME 20 // changeable int to reduce pub rate for '/ur10/target_pose' topic
 
+std::string *yaml_path;
 
 class PoseEstimationNode {
     public:
@@ -61,7 +62,7 @@ class PoseEstimationNode {
 
 
 // init handler
-PoseEstimationNode::PoseEstimationNode(): agv_laser_scan("src/object_pose_estimation/config/config.yaml") {
+PoseEstimationNode::PoseEstimationNode(): agv_laser_scan(*yaml_path) {
     std::cout<< "Init ROS Pose Estimation Node" << std::endl;
 
     hokoyu_cloud = (boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> >) new pcl::PointCloud<pcl::PointXYZ>() ;
@@ -141,6 +142,20 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
 
 int main(int argc, char** argv)
 {
+    std::cout<< "Number of Arg: " << argc << std::endl;
+
+    if ( argc < 2){
+        ROS_ERROR(  "Number of Arg is %d ", argc );
+        ROS_ERROR(  "Invalid num of arg, use:"
+                    "\n > rosrun object_pose_estimation object_pose_estimation_ros $YAML_PATH"
+                    "\n route: src/object_pose_estimation/config/config.yaml");
+        exit(0);
+    }
+
+    yaml_path= new std::string(argv[1]);
+    std::cout << " Yaml path is " << *yaml_path << std::endl;
+    ROS_WARN(  "YAML Path is %s ", argv[1] );
+
     std::cout<< "starting pose estimation node... " << std::endl;
     ros::init(argc, argv, "hokoyu_pose_estimation");
     PoseEstimationNode pose_estimation_node; 

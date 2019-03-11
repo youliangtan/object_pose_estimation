@@ -230,7 +230,7 @@ void ObjectPoseEstimate2D::objectClustering(){
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
 
   // clusterize each plane
-  tree->setInputCloud (input_cloud); //TODO check if theres any use of kd tree func
+  tree->setInputCloud (input_cloud); 
   ec.setSearchMethod (tree);
   std::vector<pcl::PointIndices> cluster_indices;
   ec.setInputCloud (input_cloud);
@@ -386,6 +386,15 @@ void ObjectPoseEstimate2D::getTargetPointCloud( pcl::PointCloud<pcl::PointXYZ>::
 }
 
 
+// TODO: get region of interest
+void ObjectPoseEstimate2D::getROI(std::vector<Eigen::Vector3f> *roi_points){
+  // roi_range[0] = config["region_of_interest"]["x_min"].as<float>(); // [x.min, x.max, y.min, y.max]
+  // roi_range[1] = config["region_of_interest"]["x_max"].as<float>();;
+  // roi_range[2] = config["region_of_interest"]["y_min"].as<float>();;
+  // roi_range[3] = config["region_of_interest"]["y_max"].as<float>();;
+  std::cout<< "Getting region of interest" << std::endl;
+}
+
 
 void ObjectPoseEstimate2D::setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
   input_cloud = cloud;
@@ -407,7 +416,7 @@ void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
   if (array_size >= 2){ // make sure there's prev pose to compare with current pose
     Eigen::Vector3f targetPoseDiff = targetPoseArray->at(array_size-1) - targetPoseArray->at(array_size-2);
     jump_score = targetPoseDiff.transpose()*targetPoseDiff; // sumation of the square of x, y, yaw 
-    std::cout << "##jump score: " << jump_score << std::endl;
+    std::cout << "## Jump score: " << jump_score << std::endl;
   }
 
   // check score, score > thresh means it's a jump
@@ -416,12 +425,12 @@ void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
     if (jump_count < jump_count_allowance )  { 
       targetPoseArray->erase(targetPoseArray->end());
       jump_count++;
-      std::cout << "##increses jump " << jump_count << " with pose array size: " << targetPoseArray->size() << std::endl;
+      std::cout << "## Increses jump count to " << jump_count << ", with pose array size: " << targetPoseArray->size() << std::endl;
     }
     else{
       jump_count = 0;
       targetPoseArray->erase(targetPoseArray->begin(), targetPoseArray->end()-1);
-      std::cout << "##jump Reseted, with pose array size: " << targetPoseArray->size() << std::endl;
+      std::cout << "## Jump Reseted, with pose array size: " << targetPoseArray->size() << std::endl;
     }
   }
   else jump_count = 0;
