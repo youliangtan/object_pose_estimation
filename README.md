@@ -8,7 +8,6 @@ For realtime ROS processing use case, multi-samples are taken to compute moving 
 
 ![alt text](/resources/rviz_example.png?)
 
-*Developing!!!!!!!!!!!!!*
 
 ## Getting Started
 
@@ -31,18 +30,25 @@ rosrun object_pose_estimation object_pose_estimation_ros
 ```
 
 **Visualize on Rviz**
-visualize topic on `/scan`, `/target_pose`, `/target_cloud`.
+
 ```
+# Visualize topic on `/scan`, `/target_pose`, `/target_cloud`.
 rviz -f laser
 ```
 
 **How to use it**
+
 By stating object (line) feature which you wish to detect in the `config.yaml` file, the ros node will be able to find the pose of the target object which matches the described features. After rosrun the code, user can try it out by placing a target in front of the lidar. A pink line will be appeared on RVIZ, which indicates the target line. 
 
-With `rosrun echo /ur10/target_pose` with msg `[x, y, theta]`, user (in this case, a ur10) is able to get the current pose of the the target object. Else, this topic will return a msg of `[0,0,0]`, which shows no target found.
+```
+# Try 
+rosrun echo /ur10/target_pose  
+```
+
+User (in this case, a ur10) is able to get the current pose of the the target object with a format of `[x, y, theta]`. Else, this topic will return a msg of `[0,0,0]`, which shows no target found.
 
 
-If these all works, This package works!! & You are good to Go!!
+*If all these works, This package works!! & You are good to Go!!*
 
 
 
