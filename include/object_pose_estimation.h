@@ -124,6 +124,7 @@ class ObjectPoseEstimate2D {
     void getROI(std::vector<Eigen::Vector3f> *roi_points);
 
     // TODO:
+    // change it to .hpp
     // getLinesPoints();
     // getROI();
 

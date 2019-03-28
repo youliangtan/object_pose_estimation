@@ -29,7 +29,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 
 
-#include <object_pose_estimation.h>
+#include <object_pose_estimation.hpp>
 
 
 #define SKIP_PUB_FRAME 20 // changeable int to reduce pub rate for '/ur10/target_pose' topic
@@ -59,6 +59,11 @@ class PoseEstimationNode {
         
         ObjectPoseEstimate2D agv_laser_scan;
 };
+
+
+// ************************************************************************************************************************************************************** //
+// ************************************************************************************************************************************************************** //
+
 
 
 // init handler

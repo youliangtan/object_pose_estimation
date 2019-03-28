@@ -8,7 +8,7 @@
  *  - pcl simple visualization is used here
 */
 
-#include "object_pose_estimation.h"
+#include "object_pose_estimation.hpp"
 
 
 

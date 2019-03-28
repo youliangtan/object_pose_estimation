@@ -36,8 +36,23 @@ visualize topic on `/scan`, `/target_pose`, `/target_cloud`.
 rviz -f laser
 ```
 
+**How to use it**
+By stating object (line) feature which you wish to detect in the `config.yaml` file, the ros node will be able to find the pose of the target object which matches the described features. After rosrun the code, user can try it out by placing a target in front of the lidar. A pink line will be appeared on RVIZ, which indicates the target line. 
+
+With `rosrun echo /ur10/target_pose` with msg `[x, y, theta]`, user (in this case, a ur10) is able to get the current pose of the the target object. Else, this topic will return a msg of `[0,0,0]`, which shows no target found.
+
+
+If these all works, This package works!! & You are good to Go!!
+
+
 
 ## Notes
  - `ObjectPoseEstimate2D` class is constructed with mainly depends on `pcl` library.
  - User can test the single `.pcd` sample with the code on `object_pose_estimation.cpp`, run via `rosrun object_pose_estimation object_pose_estimation -input SavedCloud0.pcd`
  - Conversion from laserscan to pointcloud: `rosrun object_pose_estimation scan2pcd.cpp`.
+ - Change `SKIP_PUB_FRAME` in ros cpp file to change the pub rate
+
+## TODO
+- Add getROI()
+- output twist info? stable score? to know the changes
+- Update readme: add video
