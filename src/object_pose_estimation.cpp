@@ -3,9 +3,10 @@
  * CPP code on PCL execution of 'ObjectPoseEstimate2D' class, 
  * 
  *  Created By: Tan You Liang, Feb 2019
- *  - for testing on 2D pose estimation of targeted object (line)
+ *  - Run 2D pose estimation of a pointcloud input to find a targeted object (line)
+ *  - Utilized PCL lib in this class
  *  - In main, single lidar scan of a input .pcd file is given.
- *  - pcl simple visualization is used here
+ *  - pcl simple visualization is used here (optional)
 */
 
 #include "object_pose_estimation.hpp"
@@ -65,7 +66,7 @@ void ObjectPoseEstimate2D::reInit(){
 }
 
 
-// PCL Visualizer
+// PCL Visualizer, blocking while visualizing
 pcl::visualization::PCLVisualizer::Ptr ObjectPoseEstimate2D::simpleVis (){
 
   std::cout << " Start PCL Visualizer" << std::endl;
@@ -155,9 +156,9 @@ pcl::visualization::PCLVisualizer::Ptr ObjectPoseEstimate2D::simpleVis (){
 
 
 
-// identify all line's endpoints
-// 2D plane only
-// return pose
+// identify all line's endpoints, get line description for later evaluation
+// for 2D plane only
+// @return pose
 void ObjectPoseEstimate2D::getLinesDescriptors(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Eigen::VectorXf coeff){
   
   //  ===================== get_line_endpoints ======================
@@ -396,6 +397,8 @@ void ObjectPoseEstimate2D::getROI(std::vector<Eigen::Vector3f> *roi_points){
 }
 
 
+// set input pointcloud
+// this func will run all those func related to target pose estimation
 void ObjectPoseEstimate2D::setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
   input_cloud = cloud;
   std::cout << "[Obj Pose Estimation]::Num of Input Points: " << input_cloud->size () << "\n"<< std::endl;
@@ -407,6 +410,7 @@ void ObjectPoseEstimate2D::setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 
 
 // moving avg filtering
+// This function is important to create a low and high pass filter to smoothen the pose result while running in realtime inputs
 void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
 
   int array_size = targetPoseArray->size();
@@ -454,9 +458,9 @@ void ObjectPoseEstimate2D::applyMovingAvgFiltering(){
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////// ------------------ Main Function ------------------- //////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////// ------------------ Main Function ------------------- ////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 int main(int argc, char** argv)

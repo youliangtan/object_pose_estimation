@@ -1,10 +1,10 @@
 # object_pose_estimation
 
-ROS 2D pointcloud target object pose estimator. Line-based target identifier with user input parameters.
+ROS 2D pointcloud target object pose estimator package. A line-based target identifier with user input parameters.
 
-Via hokoyu scan input, convert /scan to /pointcloud. Subsequent pcl lib functions were used to indentify the target. Ransac line detector is used to find the target flat object, which helps in identify the boundary of the line, eventually estimate the pose `[x, y, theta]` of the detected object. 
+Via a 2d lidar scan input, 'PCL' lib functions were used to indentify the target. PCL Ransac line detector is used to find the target flat object, which helps in identify the boundary of the line, eventually output a estimated pose of the detected object: `[midpoint_x, midpoint_y, theta]`.
 
-For usecase of realtime ROS processing, multi-samples are taken to compute moving averaging to smoothern the output pose estimation result. To obtain an optimal result, parameters can be further tuned in `config/config.yaml`.
+For realtime ROS processing use case, multi-samples are taken to compute moving averaging to smoothern the output pose estimation result. To obtain an optimal result, parameters can be further tuned in `config/config.yaml`.
 
 ![alt text](/resources/rviz_example.png?)
 
@@ -51,6 +51,7 @@ If these all works, This package works!! & You are good to Go!!
  - User can test the single `.pcd` sample with the code on `object_pose_estimation.cpp`, run via `rosrun object_pose_estimation object_pose_estimation -input SavedCloud0.pcd`
  - Conversion from laserscan to pointcloud: `rosrun object_pose_estimation scan2pcd.cpp`.
  - Change `SKIP_PUB_FRAME` in ros cpp file to change the pub rate
+ - 'applyMovingAvgFiltering' in the lib handles high and low pass filter, which detects 'jump' here. To change the filtering param, edit the yaml file.
 
 ## TODO
 - Add getROI()

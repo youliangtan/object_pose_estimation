@@ -104,7 +104,7 @@ class ObjectPoseEstimate2D {
     // @arg: input cloud for 2d line detection
     void setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
-    // use when would like to avg the result, smoothern the curve 
+    // use when would like to avg the result, smoothern the curve , uses in multiple realtime inputs
     // @param: tune with 'averaging_span, jump val' in config
     void applyMovingAvgFiltering();
 
@@ -124,7 +124,6 @@ class ObjectPoseEstimate2D {
     void getROI(std::vector<Eigen::Vector3f> *roi_points);
 
     // TODO:
-    // change it to .hpp
     // getLinesPoints();
     // getROI();
 

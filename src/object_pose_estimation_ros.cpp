@@ -2,8 +2,9 @@
 /*  CPP code on ROS Node execution of 'ObjectPoseEstimate2D' class
  *  
  *  Created By: Tan You Liang, Feb 2019
- *  - For testing on 2D pose estimation of targeted object (line)
- *  - Created for Testing
+ *  - For running 2D pose estimation on ros pointcloud input to find targeted object (line)
+ *  - Node is running in real time, each sub callback will execute a pose estimation.
+ *  - ROS Node that uses "object_pose_estimation" lib 
 */
 
 
@@ -36,6 +37,12 @@
 
 std::string *yaml_path;
 
+
+
+// ************************************************************************************************************************************************************** //
+// ************************************************************************************************************************************************************** //
+
+
 class PoseEstimationNode {
     public:
         PoseEstimationNode();
@@ -59,6 +66,7 @@ class PoseEstimationNode {
         
         ObjectPoseEstimate2D agv_laser_scan;
 };
+
 
 
 // ************************************************************************************************************************************************************** //
@@ -105,7 +113,7 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     sensor_msgs::PointCloud2 pc_msg;
     pcl::toROSMsg(*target, pc_msg);
     pc_msg.header.frame_id = "laser";
-    point_cloud_publisher_.publish(pc_msg);
+    point_cloud_publisher_.publish(pc_msg); // for rviz pc viz
 
     // Output Pose Stamped Msg
     tf::Quaternion quat_tf;
@@ -123,7 +131,7 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
     poseStamp_msg.pose.position.z = 0;
     poseStamp_msg.pose.orientation = quat_msg;
     poseStamp_msg.header.frame_id = "laser";
-    pose_publisher_.publish(poseStamp_msg);
+    pose_publisher_.publish(poseStamp_msg); // for rviz
 
     // Output 2D Pose Msg
     if (pub_frame_num > SKIP_PUB_FRAME){
@@ -131,7 +139,7 @@ void PoseEstimationNode::scanCallback(const sensor_msgs::LaserScan::ConstPtr& sc
         pose_2d_msg.x = target_pose[0];
         pose_2d_msg.y = target_pose[1];
         pose_2d_msg.theta = target_pose[2];
-        pose_publisher_2d.publish(pose_2d_msg);
+        pose_publisher_2d.publish(pose_2d_msg); // for user
         pub_frame_num = 0;
     }
     else{
