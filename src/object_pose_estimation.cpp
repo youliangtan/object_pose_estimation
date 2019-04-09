@@ -268,8 +268,15 @@ void ObjectPoseEstimate2D::lineFitting(){
   
   float dist_coeff;
 
-  for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator cloud = clusters_cloud->begin(); cloud != clusters_cloud->end(); ++cloud) {
 
+  for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator cloud = clusters_cloud->begin(); cloud != clusters_cloud->end(); ++cloud) {
+    std::cout << " #0 size "<< (*cloud)->points.size()  << std::endl;
+  }
+
+
+  for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator cloud = clusters_cloud->begin(); cloud != clusters_cloud->end(); ++cloud) {
+    std::cout << " #cluster size "<< clusters_cloud->size()  << std::endl;
+    
     pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>);
     std::vector<int> inliers;
     Eigen::VectorXf coeff;  //  * [point_on_line.x point_on_line.y point_on_line.z line_direction.x line_direction.y line_direction.z] (unit vector)
@@ -293,17 +300,24 @@ void ObjectPoseEstimate2D::lineFitting(){
       std::cout << "Distance coeff: " << dist_coeff << std::endl;
       pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
       sor.setInputCloud (target);
+      std::cout << " #1 "  << std::endl;
       sor.setMeanK (outliner_mean_k);
+      std::cout << " #2 "  << std::endl;
       sor.setStddevMulThresh ( outliner_std_dev_factor * dist_coeff);
-      sor.filter (*target);
+      std::cout << " #3 "  << std::endl;
+      // sor.filter (*target);
+      std::cout << " #4 "  << std::endl;
+      
     }
 
     
     getLinesDescriptors(target, coeff);
-    lines_cloud->push_back ( target );   // pointcloud
+      
+    // lines_cloud->push_back ( target );   // pointcloud
 
     std::cout << "- PointCloud representing the line: " << target->points.size () << " data points. \n" << std::endl;
-
+    std::cout << " #cluster size "<< clusters_cloud->size()  << std::endl;
+    
   }
 
 }
@@ -312,6 +326,7 @@ void ObjectPoseEstimate2D::lineFitting(){
 // find pose estimation of target
 void ObjectPoseEstimate2D::findTargetPose(){
 
+  std::cout<< " #91" <<std::endl;
   float mid_x, mid_y, x_coor, y_coor, theta, length;
 
   target_line_idx = -1;    
@@ -404,7 +419,9 @@ void ObjectPoseEstimate2D::setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
   std::cout << "[Obj Pose Estimation]::Num of Input Points: " << input_cloud->size () << "\n"<< std::endl;
   // pcl processing
   objectClustering();
+  std::cout<< " #51" <<std::endl;
   lineFitting();
+  std::cout<< " #52" <<std::endl;
   findTargetPose();
 }
 
