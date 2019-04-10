@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL 1.8 REQUIRED)
 find_package(YAML-CPP REQUIRED yaml-cpp)
 
 include_directories(
@@ -34,13 +34,13 @@ include_directories(
 
 catkin_package(
   CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs laser_geometry tf
-  DEPENDS EIGEN3 PCL #OCTOMAP
+  DEPENDS EIGEN3 PCL
 )
 
+# add_definitions( -march=native )  # doent work on melodic 
 
 link_directories(${PCL_LIBRARY_DIRS} ${YAML_CPP_LIBRARY_DIRS} ${EIGEN3_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS} ${YAML_CPP_DEFINITIONS} ${EIGEN3_DEFINITIONS} )
-add_definitions( -march=native )
+add_definitions( ${YAML_CPP_DEFINITIONS} ${EIGEN3_DEFINITIONS} )  # ${PCL_DEFINITIONS} # doent work on melodic
 
 add_library(object_pose_estimation  src/object_pose_estimation.cpp )
 target_link_libraries(object_pose_estimation ${catkin_LIBRARIES} ${PCL_LIBRARIES}  ${YAML_CPP_LIBRARIES} ${EIGEN3_LIBRARIES})

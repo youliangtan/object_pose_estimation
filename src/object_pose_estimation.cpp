@@ -28,6 +28,8 @@ ObjectPoseEstimate2D::ObjectPoseEstimate2D(std::string config_path){
 
   YAML::Node config = YAML::LoadFile(config_path);
 
+  std::cout << "Yeah!!!! YAML is Loaded ... \n" << std::endl;
+
   // Create PCL Clustering init
   ec.setClusterTolerance ( config["cluster_tolerance"].as<float>() );
   ec.setMinClusterSize ( config["min_cluster_size"].as<float>() );
@@ -268,28 +270,14 @@ void ObjectPoseEstimate2D::lineFitting(){
   
   float dist_coeff;
 
-
   for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator cloud = clusters_cloud->begin(); cloud != clusters_cloud->end(); ++cloud) {
-    std::cout << " #0 size "<< (*cloud)->points.size()  << std::endl;
-  }
 
-
-  for(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>::iterator cloud = clusters_cloud->begin(); cloud != clusters_cloud->end(); ++cloud) {
-    std::cout << " #cluster size "<< clusters_cloud->size()  << std::endl;
-    
     pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>);
     std::vector<int> inliers;
     Eigen::VectorXf coeff;  //  * [point_on_line.x point_on_line.y point_on_line.z line_direction.x line_direction.y line_direction.z] (unit vector)
 
-    // backup pointcloud
-    pcl::PointCloud<pcl::PointXYZ> backup_cloud = **cloud;
-    std::cout << " #Backup cloud size "<< backup_cloud.points.size()  << std::endl;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr backup_cloud_ptr (new pcl::PointCloud<pcl::PointXYZ>);
-    copyPointCloud(backup_cloud, *backup_cloud_ptr);
-
-
     //ransac
-    pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_l (new pcl::SampleConsensusModelLine<pcl::PointXYZ> ( backup_cloud_ptr ));
+    pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_l (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (*cloud));
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_l);
     ransac.setDistanceThreshold (ransac_dist_thresh); // so call error allowance for laser scan
     ransac.computeModel();
@@ -298,33 +286,26 @@ void ObjectPoseEstimate2D::lineFitting(){
 
     std::cout << "Line coeff: " << coeff[0] << " " << coeff[1] << " " << coeff[3] << " " << coeff[4] << std::endl;
 
-    // find lines' end points
-    pcl::copyPointCloud<pcl::PointXYZ>(*backup_cloud_ptr, inliers, *target);
+    /// find lines' end points
+    pcl::copyPointCloud<pcl::PointXYZ>(**cloud, inliers, *target);
     
-    // outliner filtering
+    // // outliner filtering
     if (enable_outliner_filtering){
       dist_coeff = (coeff[0]*coeff[0] + coeff[1]*coeff[1])* dist_coeff_factor; // 0.1 is approx
       std::cout << "Distance coeff: " << dist_coeff << std::endl;
       pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
       sor.setInputCloud (target);
-      std::cout << " #1 "  << std::endl;
       sor.setMeanK (outliner_mean_k);
-      std::cout << " #2 "  << std::endl;
       sor.setStddevMulThresh ( outliner_std_dev_factor * dist_coeff);
-      std::cout << " #3 "  << std::endl;
-      // sor.filter (*target);
-      std::cout << " #4 "  << std::endl;
-      
+      sor.filter (*target);
     }
 
     
     getLinesDescriptors(target, coeff);
-      
     lines_cloud->push_back ( target );   // pointcloud
 
     std::cout << "- PointCloud representing the line: " << target->points.size () << " data points. \n" << std::endl;
-    std::cout << " #cluster size "<< clusters_cloud->size()  << std::endl;
-    
+
   }
 
 }
@@ -333,7 +314,6 @@ void ObjectPoseEstimate2D::lineFitting(){
 // find pose estimation of target
 void ObjectPoseEstimate2D::findTargetPose(){
 
-  std::cout<< " #91" <<std::endl;
   float mid_x, mid_y, x_coor, y_coor, theta, length;
 
   target_line_idx = -1;    
@@ -426,9 +406,7 @@ void ObjectPoseEstimate2D::setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
   std::cout << "[Obj Pose Estimation]::Num of Input Points: " << input_cloud->size () << "\n"<< std::endl;
   // pcl processing
   objectClustering();
-  std::cout<< " #51" <<std::endl;
   lineFitting();
-  std::cout<< " #52" <<std::endl;
   findTargetPose();
 }
 
@@ -517,7 +495,7 @@ int main(int argc, char** argv)
   
 
   // =============== Place class here =====================
-  ObjectPoseEstimate2D agv_laser_scan("src/object_pose_estimation/config/config.yaml");
+  ObjectPoseEstimate2D agv_laser_scan("../config.yaml");
   agv_laser_scan.setInputCloud(cloud);
   // agv_laser_scan.applyMovingAvgFiltering(); // Use only on realtime multiple calls
   agv_laser_scan.getTargetPose(&target_pose);
