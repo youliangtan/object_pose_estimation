@@ -55,10 +55,14 @@ User (in this case, a ur10) is able to get the current pose of the the target ob
 ## Notes
  - Tested on ROS `Kinetic` and `Melodic`
  - `ObjectPoseEstimate2D` class is constructed with mainly depends on `pcl` library.
- - User can test the single `.pcd` sample with the code on `object_pose_estimation.cpp`, run via `rosrun object_pose_estimation object_pose_estimation -input SavedCloud0.pcd`
  - Conversion from laserscan to pointcloud: `rosrun object_pose_estimation scan2pcd.cpp`.
  - Change `SKIP_PUB_FRAME` in ros cpp file to change the pub rate
  - 'applyMovingAvgFiltering' in the lib handles high and low pass filter, which detects 'jump' here. To change the filtering param, edit the yaml file.
+ 
+**Run object_pose_estimation.cpp**
+ - Edit Cmakelist to create executable by adding `add_executable(object_pose_estimation src/object_pose_estimation.cpp )`
+ - User can test the single `.pcd` sample with the code on `object_pose_estimation.cpp`, run via `rosrun object_pose_estimation object_pose_estimation -input SavedCloud0.pcd`
+ - Beware of .pcd and config.yaml path.
 
 ## TODO
 - Add getROI()
