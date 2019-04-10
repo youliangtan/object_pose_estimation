@@ -53,6 +53,7 @@ User (in this case, a ur10) is able to get the current pose of the the target ob
 
 
 ## Notes
+ - Tested on ROS `Kinetic` and `Melodic`
  - `ObjectPoseEstimate2D` class is constructed with mainly depends on `pcl` library.
  - User can test the single `.pcd` sample with the code on `object_pose_estimation.cpp`, run via `rosrun object_pose_estimation object_pose_estimation -input SavedCloud0.pcd`
  - Conversion from laserscan to pointcloud: `rosrun object_pose_estimation scan2pcd.cpp`.
