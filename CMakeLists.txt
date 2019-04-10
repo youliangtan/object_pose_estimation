@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(object_pose_estimation)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEPRECATION_FLAG} -w")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEPRECATION_FLAG} -std=c++14 -w")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_RULE_MESSAGES OFF)
 
-add_definitions( -Wall -Werror)
+add_definitions(-std=c++14  -Wall -Werror)
 
 remove_definitions(-Werror)
 

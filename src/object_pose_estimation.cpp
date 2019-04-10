@@ -281,39 +281,46 @@ void ObjectPoseEstimate2D::lineFitting(){
     std::vector<int> inliers;
     Eigen::VectorXf coeff;  //  * [point_on_line.x point_on_line.y point_on_line.z line_direction.x line_direction.y line_direction.z] (unit vector)
 
-    //ransac
-    pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_l (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (*cloud));
-    pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_l);
-    ransac.setDistanceThreshold (ransac_dist_thresh); // so call error allowance for laser scan
-    ransac.computeModel();
-    ransac.getInliers(inliers);
-    ransac.getModelCoefficients(coeff);
+    // backup pointcloud
+    pcl::PointCloud<pcl::PointXYZ> backup_cloud = **cloud;
+    std::cout << " #Backup cloud size "<< backup_cloud.points.size()  << std::endl;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr backup_cloud_ptr (new pcl::PointCloud<pcl::PointXYZ>);
+    copyPointCloud(backup_cloud, *backup_cloud_ptr);
 
-    std::cout << "Line coeff: " << coeff[0] << " " << coeff[1] << " " << coeff[3] << " " << coeff[4] << std::endl;
+
+    // //ransac
+    // pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_l (new pcl::SampleConsensusModelLine<pcl::PointXYZ> ( backup_cloud_ptr ));
+    // pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_l);
+    // ransac.setDistanceThreshold (ransac_dist_thresh); // so call error allowance for laser scan
+    // ransac.computeModel();
+    // ransac.getInliers(inliers);
+    // ransac.getModelCoefficients(coeff);
+
+    // std::cout << "Line coeff: " << coeff[0] << " " << coeff[1] << " " << coeff[3] << " " << coeff[4] << std::endl;
 
     /// find lines' end points
-    pcl::copyPointCloud<pcl::PointXYZ>(**cloud, inliers, *target);
+    // pcl::copyPointCloud<pcl::PointXYZ>(*backup_cloud_ptr, inliers, *target);
     
     // // outliner filtering
-    if (enable_outliner_filtering){
-      dist_coeff = (coeff[0]*coeff[0] + coeff[1]*coeff[1])* dist_coeff_factor; // 0.1 is approx
-      std::cout << "Distance coeff: " << dist_coeff << std::endl;
-      pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
-      sor.setInputCloud (target);
-      std::cout << " #1 "  << std::endl;
-      sor.setMeanK (outliner_mean_k);
-      std::cout << " #2 "  << std::endl;
-      sor.setStddevMulThresh ( outliner_std_dev_factor * dist_coeff);
-      std::cout << " #3 "  << std::endl;
-      // sor.filter (*target);
-      std::cout << " #4 "  << std::endl;
+    // if (enable_outliner_filtering){
+    //   dist_coeff = (coeff[0]*coeff[0] + coeff[1]*coeff[1])* dist_coeff_factor; // 0.1 is approx
+    //   std::cout << "Distance coeff: " << dist_coeff << std::endl;
+    //   pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+    //   sor.setInputCloud (target);
+    //   std::cout << " #1 "  << std::endl;
+    //   sor.setMeanK (outliner_mean_k);
+    //   std::cout << " #2 "  << std::endl;
+    //   sor.setStddevMulThresh ( outliner_std_dev_factor * dist_coeff);
+    //   std::cout << " #3 "  << std::endl;
+    //   // sor.filter (*target);
+    //   std::cout << " #4 "  << std::endl;
       
-    }
+    // }
 
     
-    getLinesDescriptors(target, coeff);
+    // // getLinesDescriptors(target, coeff);
       
-    // lines_cloud->push_back ( target );   // pointcloud
+    // // lines_cloud->push_back ( target );   // pointcloud
 
     std::cout << "- PointCloud representing the line: " << target->points.size () << " data points. \n" << std::endl;
     std::cout << " #cluster size "<< clusters_cloud->size()  << std::endl;
